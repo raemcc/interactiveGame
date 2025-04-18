@@ -1,14 +1,16 @@
 let character;
 let home;
-let highscore = 0;
+let nameInput;
+let submitButton;
+let showHighscoreInput = false;
 
 class Game
 {
   static shared = new Game();
   health = 100;
   score = 0;
-  
-
+  highscore;
+  prompted = false;
   character = new Character();
   home = new Home();
   enemies=[];
@@ -18,18 +20,19 @@ class Game
 }
 
 function preload(){
-  img = loadImage('character.png');
-  img2 = loadImage('character2.png');
-  enemy2 = loadImage('enemy2.png');
-  pic3 = loadImage('enemy3.png');
-  vis1 = loadImage('enemy1.png');
-  myFont = loadFont('minecraft.ttf');
-  bg = loadImage('sky.png')
+  img = loadImage('media/character.png');
+  img2 = loadImage('media/character2.png');
+  enemy2 = loadImage('media/enemy2.png');
+  pic3 = loadImage('media/enemy3.png');
+  vis1 = loadImage('media/enemy1.png');
+  myFont = loadFont('media/minecraft.ttf');
+  bg = loadImage('media/sky.png');
+  
 }
 
 function setup() {
   createCanvas(640, 480); //pixels
-  screen = 0;
+  screen = 4;
   textFont(myFont);
 }
 
@@ -48,15 +51,25 @@ function draw(){
         pause();
         break;
 
-        case 4:
+      case 4:
         gameOver();
+        break;
+      
+      case 5:
+        showLeaderboard();
         break;
 
     }
 }
 
 function runGameDefense(){
-  
+  console.log("game");
+
+  let scoresData = JSON.parse(localStorage.getItem("highscores")) || [];
+  let scoresList = Object.values(scoresData);
+  let scoresDataInt = scoresList.map(entry=> entry.score);
+  // scoresData.map(s => int(s));
+  Game.shared.highscore = Math.max(...scoresDataInt);
   noStroke();
   fill(255);
 
@@ -86,7 +99,7 @@ function runGameDefense(){
   // displays current score and current health
   textSize(15);
   text("score: " + Game.shared.score, 120, 460);
-  text("highscore: " + highscore, 570, 460);
+  text("highscore: " + Game.shared.highscore, 570, 460);
   textFont('Helvetica'); 
   text("❤️", 65, 458);
   
@@ -143,11 +156,14 @@ function runGameDefense(){
 }
 
 function menu(){
+  console.log("menu");
+
   Game.shared.health = 100;
   Game.shared.score = 0;
   Game.shared.bullets = [];
   Game.shared.enemies = []; 
   
+
   fill(255);
   textAlign(CENTER);
   textSize(30);
@@ -155,6 +171,7 @@ function menu(){
   text("MENU", width/2, height/2); 
   textSize(15);
   text("Press Enter to Start", width/2, (height/2)+30);
+
 
 }
 function pause(){
@@ -169,7 +186,15 @@ function pause(){
 
 function gameOver(){
   
-//💔
+  let playerScore = Game.shared.score;
+  //get local list of highscores
+  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
+  //sort by descending
+  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
+
+  //get lowest score
+  let lowestHighscore = sortedHighscores[sortedHighscores.length-1].score;
+ 
 
   textSize(35);
   strokeWeight(20);
@@ -178,25 +203,86 @@ function gameOver(){
 
   text("GAME OVER", width/2, height/2);
   textSize(20);
-  
-    text("You scored: " + Game.shared.score, width/2, (height/2)+30); 
-    if( Game.shared.score >= highscore){
-      //new highscore achieved
-      highscore = Game.shared.score
-      text("New Highscore!", width/2, (height/2)+60);
-    } else {
-      text("Highscore: " + highscore, width/2, (height/2)+60);
-    }
-
-    
-  
-  
-  text("Press Enter to Try Again", width/2, 425); 
+  text("You scored: " + playerScore, width/2, (height/2)+30);
+  text("Press Enter to Show Leaderboard", width/2, 425); 
   text("Press ESC to Exit to Menu", width/2, 450);
+ 
+  // console.log("scores on board: " + sortedHighscores.length);
+  
+
+  if (
+    !Game.shared.prompted
+  ) {
+      if(sortedHighscores.length<10 || playerScore<lowestHighscore){
+        Game.shared.prompted = true; // prevents multiple prompts
+        console.log("lowest score: " + lowestHighscore);
+        console.log("scores length: " + sortedHighscores.length);
+    
+    
+        if (!nameInput) {
+          nameInput = createInput();
+          nameInput.position(width / 2 - 120, height / 2 + 60);
+          nameInput.size(200);
+        }
+    
+        if (!submitButton) {
+          submitButton = createButton("Submit");
+          submitButton.position(nameInput.x + 210, nameInput.y);
+          submitButton.mousePressed(() => {
+          let playerName = nameInput.value().trim();
+    
+          if (playerName) {
+            sortedHighscores.push({ name: playerName, score: playerScore });
+            sortedHighscores.sort((a, b) => b.score - a.score);
+            let trimmedHighscores = sortedHighscores.slice(0, 10);
+            
+        
+            localStorage.setItem("highscores", JSON.stringify(trimmedHighscores));
+            nameInput.remove();
+            submitButton.remove();
+            
+            Game.shared.scoreSaved = true;
+            text("New Highscore Saved", width / 2, height / 2 + 100);
+            }
+          });
+        }
+      } else {
+        console.log("you didnt make it" );
+      }
+  } 
+    // textSize(20);
+    // text("You didnt make the leaderboard", width / 2, height / 2 + 45);
+  
+  
 }
 
+function showLeaderboard(){
+  console.log("leaderboard");
+  // Retrieve the high scores
+  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
+  // Sort by descending score
+  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
 
+  // Create a background for the leaderboard
+  background(0, 0, 0, 150); // Semi-transparent background for the leaderboard
 
+  
+  // Title text
+  textSize(35);
+  fill(255);
+  textAlign(CENTER);
+  text("Leaderboard", width / 2, 50);
+  textSize(20);
+  text("Press Backspace to Try Again", width/2, 425); 
+  text("Press ESC to Exit to Menu", width/2, 455);
+  // Display the top 10 scores
+  textSize(25);
+  for (let i = 0; i < sortedHighscores.length && i < 10; i++) {
+    let rank = i + 1;
+    let scoreEntry = sortedHighscores[i];
+    text(rank + ".  " + scoreEntry.name + " - " + scoreEntry.score, width / 2, 100 + (i * 40));
+  }
+}
 
 function keyPressed(){
   if (keyCode === 87){
@@ -227,13 +313,34 @@ function keyPressed(){
 
   }
 
-if (keyCode === 13 && (screen == 0 || screen == 3)){
+if (screen == 4  && keyCode === 13){
+
+    nameInput.remove();
+    submitButton.remove();
+    showHighscoreInput = false;
+    console.log("leaderboard?");
+    screen = 5;
     
+}
+if (screen == 4  && keyCode === 27){
+
+  nameInput.remove();
+  submitButton.remove();
+  showHighscoreInput = false;
+  console.log("leaderboard?");
+  screen = 0;
+  
+}
+
+
+if (keyCode === 13 && (screen == 0 || screen == 3)){
+  console.log("rungame");
     screen = 1;
   }
 
-  if (keyCode === 13 && (screen == 4)){
-    Game.shared.health = 100;
+
+  if (keyCode === 8 && screen == 5){
+  Game.shared.health = 100;
   Game.shared.score = 0;
   Game.shared.bullets = [];
   Game.shared.enemies = []; 
@@ -242,6 +349,7 @@ if (keyCode === 13 && (screen == 0 || screen == 3)){
 
   if (keyCode === 27){
     screen = 0;
+    
   }
   
 }
