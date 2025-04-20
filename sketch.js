@@ -14,8 +14,21 @@ class Game
   character = new Character();
   home = new Home();
   enemies=[];
-  bullets=[];
-  
+  bullets=[];  
+  highscoresList;
+  sortedHighscores;
+  lowestHighscore;
+
+  constructor() {
+    //get local list of highscores
+    this.highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
+    //sort by descending
+    this.sortedHighscores = [...this.highscoresList].sort((a, b) => b.score - a.score);
+    //get lowest score
+    this.lowestHighscore = this.sortedHighscores.length > 0
+      ? this.sortedHighscores[this.sortedHighscores.length - 1].score
+      : 0;
+  }
   
 }
 
@@ -163,12 +176,10 @@ function runGameDefense(){
 }
 
 function menu(){
-  console.log("menu");
-
   Game.shared.health = 100;
   Game.shared.score = 0;
   Game.shared.bullets = [];
-  Game.shared.enemies = []; 
+  Game.shared.enemies = [];
   
 
   fill(255);
@@ -181,6 +192,7 @@ function menu(){
 
 
 }
+
 function pause(){
   fill(255);
   textAlign(CENTER);
@@ -194,15 +206,8 @@ function pause(){
 function gameOver(){
   
   let playerScore = Game.shared.score;
-  //get local list of highscores
-  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
-  //sort by descending
-  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
-
-  //get lowest score
-  // let lowestHighscore = sortedHighscores[sortedHighscores.length-1].score;
-
-  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
+  let sortedHighscores = Game.shared.sortedHighscores;
+  let lowestHighscore = Game.shared.lowestHighscore;
  
   if(sortedHighscores.length<10 || playerScore>lowestHighscore){
     newHighScore();
@@ -213,15 +218,8 @@ function gameOver(){
 
 function newHighScore(){
   let playerScore = Game.shared.score;
-
-  //get local list of highscores
-  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
-
-  //sort by descending
-  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
-
-  //get lowest score
-  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
+  let sortedHighscores = Game.shared.sortedHighscores;
+  let lowestHighscore = Game.shared.lowestHighscore;
 
   fill(255);
   textAlign(CENTER);
@@ -268,12 +266,14 @@ function submitScore(){
     return;
     } 
 
+    // Add the score and player name to the highscores
     sortedHighscores.push({ name: playerName, score: playerScore });
     sortedHighscores.sort((a, b) => b.score - a.score);
     let trimmedHighscores = sortedHighscores.slice(0, 10);
     
-
+    //save updated highscores to local storage
     localStorage.setItem("highscores", JSON.stringify(trimmedHighscores));
+    //clear input and submit buttons
     nameInput.remove();
     submitButton.remove();
 
@@ -284,14 +284,8 @@ function submitScore(){
 
 function regularScore(){
   let playerScore = Game.shared.score;
-  //get local list of highscores
-  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
-  //sort by descending
-  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
-
-  //get lowest score
-  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
-
+  let sortedHighscores = Game.shared.sortedHighscores;
+  let lowestHighscore = Game.shared.lowestHighscore;
   // else {
   //   console.log("lowest score: " + lowestHighscore);
   //   console.log("scores length: " + sortedHighscores.length);
@@ -308,6 +302,7 @@ function regularScore(){
 
   text("you didnt make it", width/2, height/2);
 }
+
 function showLeaderboard(){
   console.log("leaderboard");
   // Retrieve the high scores
@@ -344,23 +339,24 @@ function showLeaderboard(){
 }
 
 function keyPressed(){
-  if (keyCode === 87){
-    Game.shared.character.up();
-    Game.shared.character.state = 0;
-  } 
-  if (keyCode === 83){
-    Game.shared.character.down();
-    Game.shared.character.state = 0;
-  }
 
-  if (keyCode === 68){
-    Game.shared.character.right();
-    Game.shared.character.state = 0;
-  }
-
-  if (keyCode === 65){
-    Game.shared.character.left();
-    Game.shared.character.state = 0;
+  switch (keyCode) {
+    case 87: // W key
+      Game.shared.character.up();
+      Game.shared.character.state = 0;
+      break;
+    case 83: // S key
+      Game.shared.character.down();
+      Game.shared.character.state = 0;
+      break;
+    case 68: // D key
+      Game.shared.character.right();
+      Game.shared.character.state = 0;
+      break;
+    case 65: // A key
+      Game.shared.character.left();
+      Game.shared.character.state = 0;
+      break;
   }
 
   if (keyCode === 32 && screen == 1){
@@ -375,31 +371,35 @@ function keyPressed(){
   if (screen === 4 && keyCode === 13) {
     console.log("ENTER key pressed");
     if (submitButton) {
+      // if there is a submit button , press it
       submitScore();
     } else {
+      // no submit button continue to leaderboard
       console.log("submitButton not defined yet");
+      screen = 5;
     }
   }
 
-
-
-if (screen === 4  && keyCode === 27){
-// press escape to return to menu
-  nameInput.remove();
-  submitButton.remove();
-
-  screen = 0;
-  
-}
-
-
-if (keyCode === 13 && (screen === 0 || screen === 3)){
-  
-    screen = 1;
+  if (screen === 4  && keyCode === 27){
+  // press escape to return to menu
+    if (submitButton) {
+      //clear input and button if they exist
+      nameInput.remove();
+      submitButton.remove();      
+    }
+    screen = 0;
+    return;
   }
 
 
+  if (keyCode === 13 && (screen === 0 || screen === 3)){
+    //start the game when entered is pressed on menu or pause
+      screen = 1;
+    }
+
+
   if (keyCode === 8 && screen === 5){
+    //when backspace key is pressed on leaderboard game is restarted
   Game.shared.health = 100;
   Game.shared.score = 0;
   Game.shared.bullets = [];
@@ -409,7 +409,6 @@ if (keyCode === 13 && (screen === 0 || screen === 3)){
 
   if (keyCode === 27){
     screen = 0;
-    
   }
   
 }
