@@ -55,7 +55,7 @@ class Enemy
           }
           
           console.log(impact);
-          Game.shared.health -= impact/2;
+          Game.shared.health -= impact;
         }
         return true;
       }
@@ -86,28 +86,15 @@ class Enemy
 
   show() 
   {
-    // if (this.type == 0){
-    //   image(enemy1, this.x, this.y, this.size, this.size);
-      
+    if(this.type==0){
+      image(enemy2, this.x, this.y, this.size, this.size);
 
-    // } else if(this.type == 1){
-    //   image(enemy2, this.x, this.y, this.size, this.size);
-      
-
-    // }else {
-      
-    //   image(enemy3, this.x, this.y, this.size, this.size);
-    // }
-if(this.type==0){
-  image(enemy2, this.x, this.y, this.size, this.size);
-
-}else if(this.type == 1){
-  image(pic3, this.x, this.y, this.size, this.size);
-}else{
-  fill('green');
-  image(vis1, this.x, this.y, this.size, this.size);
-
-}
+    }else if(this.type == 1){
+      image(pic3, this.x, this.y, this.size, this.size);
+    }else{
+      fill('green');
+      image(vis1, this.x, this.y, this.size, this.size);
+    }
 
   }
  

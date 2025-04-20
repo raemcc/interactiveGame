@@ -2,13 +2,13 @@ let character;
 let home;
 let nameInput;
 let submitButton;
-let showHighscoreInput = false;
+
 
 class Game
 {
   static shared = new Game();
   health = 100;
-  score = 9;
+  score = 0;
   highscore;
   prompted = false;
   character = new Character();
@@ -32,7 +32,7 @@ function preload(){
 
 function setup() {
   createCanvas(640, 480); //pixels
-  screen = 4;
+  screen = 0;
   textFont(myFont);
 }
 
@@ -63,13 +63,19 @@ function draw(){
 }
 
 function runGameDefense(){
-  console.log("game");
-
+  Game.shared.prompted = false;
   let scoresData = JSON.parse(localStorage.getItem("highscores")) || [];
+
+  // ensures scoresData is stored as array
   let scoresList = Object.values(scoresData);
+
+  // extract just scores from objects
   let scoresDataInt = scoresList.map(entry=> entry.score);
-  // scoresData.map(s => int(s));
-  Game.shared.highscore = Math.max(...scoresDataInt);
+  
+  // get max score from list of integers, unless empty then set to 0
+  Game.shared.highscore = scoresDataInt.length > 0 ? Math.max(...scoresDataInt) : 0;
+
+
   noStroke();
   fill(255);
 
@@ -111,6 +117,7 @@ function runGameDefense(){
   Game.shared.character.show();
   Game.shared.character.update();
 
+  // shows "home" the area which takes damage from enemies
   Game.shared.home.show();
   
   
@@ -142,7 +149,7 @@ function runGameDefense(){
     }
  
     //for loop iterates over each bullet and 
-    // runs show() and update() functions, if
+    // runs show() and update() functions
     for (var i = 0; i <Game.shared.bullets.length; i ++){
       Game.shared.bullets[i].show();
       Game.shared.bullets[i].update();
@@ -193,85 +200,114 @@ function gameOver(){
   let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
 
   //get lowest score
-  let lowestHighscore = sortedHighscores[sortedHighscores.length-1].score;
+  // let lowestHighscore = sortedHighscores[sortedHighscores.length-1].score;
+
+  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
  
+  if(sortedHighscores.length<10 || playerScore>lowestHighscore){
+    newHighScore();
+  } else {
+    regularScore();
+  }
+}
+
+function newHighScore(){
+  let playerScore = Game.shared.score;
+
+  //get local list of highscores
+  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
+
+  //sort by descending
+  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
+
+  //get lowest score
+  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
+
+  fill(255);
+  textAlign(CENTER);
+  
+  textSize(35);
+  text("You made the leaderboard!", width / 2, 100);
+  
+  textSize(25);
+  text("You scored: " + playerScore, width / 2, 165);
+  text("Please enter your name:", width / 2, height / 2 + 25);
+
+  text("Press Submit to Show Leaderboard", width/2, 410);
+  text("Press Esc to Exit to Menu", width/2, 450);
+    
+  if (!Game.shared.prompted) {
+   
+    nameInput = createInput();
+    nameInput.position(width / 2 - 120, height / 2 + 50);
+    nameInput.size(200);
+    nameInput.attribute('maxlength', '8');
+  
+    submitButton = createButton("submit");
+    submitButton.class('my-button');
+    submitButton.position(nameInput.x + 210, nameInput.y);
+    
+    submitButton.mousePressed(submitScore);
+        
+    Game.shared.prompted = true;
+  }
+}
+
+function submitScore(){
+
+  console.log("Submit triggered");
+
+  let playerName = nameInput.value().trim();
+
+  if (playerName === "") {
+
+    nameInput.remove();
+    nameInput = createInput('---');
+    nameInput.position(width / 2 - 120, height / 2 + 50);
+    nameInput.size(200);
+    return;
+    } 
+
+    sortedHighscores.push({ name: playerName, score: playerScore });
+    sortedHighscores.sort((a, b) => b.score - a.score);
+    let trimmedHighscores = sortedHighscores.slice(0, 10);
+    
+
+    localStorage.setItem("highscores", JSON.stringify(trimmedHighscores));
+    nameInput.remove();
+    submitButton.remove();
+
+    
+    console.log("score submitted");
+    screen = 5;
+}
+
+function regularScore(){
+  let playerScore = Game.shared.score;
+  //get local list of highscores
+  let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
+  //sort by descending
+  let sortedHighscores = highscoresList.sort((a, b) => b.score - a.score);
+
+  //get lowest score
+  let lowestHighscore = sortedHighscores.length > 0 ? sortedHighscores[sortedHighscores.length - 1].score : 0;
+
+  // else {
+  //   console.log("lowest score: " + lowestHighscore);
+  //   console.log("scores length: " + sortedHighscores.length);
+
+  //   textSize(20);
+  //   text("you didnt make it", width / 2, height / 2 + 60);
+  //   console.log("you didnt make it" );
+  //   text("Press Enter to Show Leaderboard", width/2, 425); 
+  // }
 
   textSize(35);
-  strokeWeight(20);
   fill(255);
   textAlign(CENTER);
 
-  text("GAME OVER", width/2, height/2);
-  textSize(20);
-  text("You scored: " + playerScore, width/2, (height/2)+30);
-  
-  
-  text("Press ESC to Exit to Menu", width/2, 450);
- 
-  // console.log("scores on board: " + sortedHighscores.length);
-  
-
-  if (!Game.shared.prompted) {
-      if(sortedHighscores.length<10 || playerScore>lowestHighscore){
-        
-        
-         // prevents multiple prompts
-        
-
-        fill(255);
-        textSize(20);
-        text("You made the leaderboard!", width / 2, height / 2 + 60);
-        text("Please enter your name:", width / 2, height / 2 + 95);
-        text("Press Submit to Show Leaderboard", width/2, 425); 
-        
-        if (!nameInput) {
-          nameInput = createInput();
-          nameInput.position(width / 2 - 120, height / 2 + 120);
-          nameInput.size(200);
-          nameInput.attribute('maxlength', '8');
-        }
-    
-        if (!submitButton) {
-          submitButton = createButton("Submit");
-          submitButton.position(nameInput.x + 210, nameInput.y);
-          submitButton.mousePressed(() => {
-          let playerName = nameInput.value().trim();
-    
-          if (playerName) {
-            sortedHighscores.push({ name: playerName, score: playerScore });
-            sortedHighscores.sort((a, b) => b.score - a.score);
-            let trimmedHighscores = sortedHighscores.slice(0, 10);
-            
-        
-            localStorage.setItem("highscores", JSON.stringify(trimmedHighscores));
-            nameInput.remove();
-            submitButton.remove();
-            Game.shared.prompted = false;
-            console.log("saved your score!");
-            screen = 5;
-
-            } else {
-              nameInput.remove();
-              nameInput = createInput('---');
-              nameInput.position(width / 2 - 120, height / 2 + 120);
-              nameInput.size(200);
-            }
-          });
-        }
-      } else {
-        console.log("lowest score: " + lowestHighscore);
-        console.log("scores length: " + sortedHighscores.length);
-
-        textSize(20);
-        text("you didnt make it", width / 2, height / 2 + 60);
-        console.log("you didnt make it" );
-        text("Press Enter to Show Leaderboard", width/2, 425); 
-      }
-  }
-  Game.shared.prompted = true;
-  
+  text("you didnt make it", width/2, height/2);
 }
-
 function showLeaderboard(){
   console.log("leaderboard");
   // Retrieve the high scores
@@ -336,35 +372,34 @@ function keyPressed(){
 
   }
 
-if (screen == 4  && keyCode === 13){
-  if(nameInput){
-    nameInput.remove();
-    submitButton.remove();
-    showHighscoreInput = false;
+  if (screen === 4 && keyCode === 13) {
+    console.log("ENTER key pressed");
+    if (submitButton) {
+      submitScore();
+    } else {
+      console.log("submitButton not defined yet");
+    }
   }
-    
-    console.log("leaderboard?");
-    screen = 5;
-    
-}
-if (screen == 4  && keyCode === 27){
 
+
+
+if (screen === 4  && keyCode === 27){
+// press escape to return to menu
   nameInput.remove();
   submitButton.remove();
-  showHighscoreInput = false;
-  console.log("leaderboard?");
+
   screen = 0;
   
 }
 
 
-if (keyCode === 13 && (screen == 0 || screen == 3)){
-  console.log("rungame");
+if (keyCode === 13 && (screen === 0 || screen === 3)){
+  
     screen = 1;
   }
 
 
-  if (keyCode === 8 && screen == 5){
+  if (keyCode === 8 && screen === 5){
   Game.shared.health = 100;
   Game.shared.score = 0;
   Game.shared.bullets = [];
