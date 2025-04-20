@@ -1,0 +1,17 @@
+screen order:
+case 0:
+menu();
+
+case 1:
+runGameDefense();
+
+case 3:
+pause();
+
+case 4:
+gameOver();
+
+case 5:
+showLeaderboard();
+
+
