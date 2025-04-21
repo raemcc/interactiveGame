@@ -1,6 +1,7 @@
 let increase = 0;
 let img;
 let img2;
+
 class Character
 {
   constructor()
@@ -8,6 +9,7 @@ class Character
     
     this.y = 240;
     this.x = 64;
+    this.size = 50;
     this.state = 0;
     this.speed = 0;
     this.gravity = 0.5;
@@ -16,18 +18,12 @@ class Character
   }
 
 
-  show() 
-  {
+  show() {
     if(this.state == 0){
-      image(img, this.x-25, this.y-25, 50, 50);
+      image(img, this.x-25, this.y-25, this.size, this.size);
     } else{
-      image(img2, this.x-25, this.y-25, 50, 50);
+      image(img2, this.x-25, this.y-25, this.size, this.size);
     }
-    // noStroke();
-    // fill('pink')
-    // ellipse(this.x, this.y, 50, 50);
-    
-     
   }
   
   

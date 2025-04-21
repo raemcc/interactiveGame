@@ -8,13 +8,16 @@ class Game
 {
   static shared = new Game();
   health = 100;
+  characterHealth = 100;
   score = 0;
+  scoreAttack = 0;
   highscore;
   prompted = false;
   character = new Character();
   home = new Home();
   enemies=[];
-  bullets=[];  
+  bullets=[];
+
   highscoresList;
   sortedHighscores;
   lowestHighscore;
@@ -61,7 +64,7 @@ function draw(){
         break;
 
       case 3:
-        pause();
+        pauseGameDefence();
         break;
 
       case 4:
@@ -72,7 +75,89 @@ function draw(){
         showLeaderboard();
         break;
 
+      case 6:
+        runGameAttack();
+        break;
+
+      case 7:
+        pauseGameAttack();
+        break;
+
+      case 8:
+        gameOverAttack();
+        break;
+
     }
+}
+
+function menu(){
+
+  fill(255);
+  textAlign(CENTER);
+  textSize(30);
+  strokeWeight(20);
+  text("MENU", width/2, 100); 
+  textSize(25);
+  text("Select your game mode: ", width/2, 200);
+
+  let buttonWidth = 133;
+ 
+  if(!Game.shared.prompted){
+    defenceButton = createButton("Defence Mode");
+    defenceButton.class('my-button');
+    defenceButton.position((width/2) - (buttonWidth/2), 250);
+
+    attackButton = createButton("Attack Mode");
+    attackButton.class('my-button');
+    attackButton.position((width/2)- (buttonWidth/2),300);
+
+    leaderboardButton = createButton("Leaderboard");
+    leaderboardButton.class('my-button');
+    leaderboardButton.position((width/2)- (buttonWidth/2),350);
+
+    defenceButton.mousePressed(() => {
+      screen = 1;
+      defenceButton.remove();
+      attackButton.remove();
+      leaderboardButton.remove();
+    });
+
+    attackButton.mousePressed(() => {
+      screen = 6;
+      defenceButton.remove();
+      attackButton.remove();
+      leaderboardButton.remove();
+    });
+
+    leaderboardButton.mousePressed(() => {
+      screen = 5;
+      defenceButton.remove();
+      attackButton.remove();
+      leaderboardButton.remove();
+    });
+
+    Game.shared.prompted = true;
+  }
+  
+}
+
+function reset(){
+  Game.shared.health = 100;
+  Game.shared.characterHealth = 100;
+
+  Game.shared.score = 0;
+  Game.shared.scoreAttack = 0;
+
+  Game.shared.bullets = [];
+  Game.shared.enemies = [];
+  Game.shared.prompted = false;
+
+  Game.shared.home = new Home();
+  Game.shared.character = new Character();
+  background(bg);
+  
+  
+  console.log("reset complete");
 }
 
 function runGameDefense(){
@@ -138,19 +223,28 @@ function runGameDefense(){
   if(Game.shared.enemies.length>15){
     Game.shared.enemies.shift();
   }
+  
   // adds new enemies into array
-    if (frameCount % 100 == 0) {
-      Game.shared.enemies.push(new Enemy());
-    }
-    //for loop iterates over each enemy and runs show() and update() functions
-    for (var i = 0; i < Game.shared.enemies.length; i ++){
-    Game.shared.enemies[i].show();
-    Game.shared.enemies[i].update();
-    Game.shared.enemies[i].detectCollision();
+  if (frameCount % 100 == 0) {
+    Game.shared.enemies.push(new Enemy());
+  }
 
-    if(Game.shared.enemies[i].detectCollision()){
-      Game.shared.enemies.splice(i,1);
+  //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
+    for (//sets i to last index in array
+      let i = Game.shared.enemies.length - 1; 
+      i >= 0; i--){
+
+      let enemy = Game.shared.enemies[i];
+      enemy.show();
+      enemy.update();
+
+      const collided = enemy.detectCollisionHome(); // check once
+
+      if (collided) {
+        Game.shared.enemies.splice(i, 1); // remove if it hit home
       }
+    }
+
     // if(Game.shared.enemies[i].hits(Game.shared.character)){
     //   console.log("hit");
     //   if(health>0){
@@ -159,7 +253,7 @@ function runGameDefense(){
     //     screen = 0;
     //   }
     // }
-    }
+    
  
     //for loop iterates over each bullet and 
     // runs show() and update() functions
@@ -175,30 +269,12 @@ function runGameDefense(){
       }
 }
 
-function menu(){
-  Game.shared.health = 100;
-  Game.shared.score = 0;
-  Game.shared.bullets = [];
-  Game.shared.enemies = [];
-  
-
+function pauseGameDefence(){
   fill(255);
   textAlign(CENTER);
   textSize(30);
   strokeWeight(20);
-  text("MENU", width/2, height/2); 
-  textSize(15);
-  text("Press Enter to Start", width/2, (height/2)+30);
-
-
-}
-
-function pause(){
-  fill(255);
-  textAlign(CENTER);
-  textSize(30);
-  strokeWeight(20);
-  text("GAME PAUSED", width/2, height/2); 
+  text("GAME DEFENCE PAUSED", width/2, height/2); 
   textSize(15);
   text("Press Enter to Resume", width/2, (height/2)+30);
 }
@@ -304,7 +380,6 @@ function regularScore(){
 }
 
 function showLeaderboard(){
-  console.log("leaderboard");
   // Retrieve the high scores
   let highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
   // Sort by descending score
@@ -338,8 +413,120 @@ function showLeaderboard(){
   }
 }
 
-function keyPressed(){
+function runGameAttack(){
+  noStroke();
+  fill(255);
 
+  // lines to make pause button
+  rect(55,16,6,28);
+  rect(70,16,6,28);
+  
+  // text to make 'x' escape button
+  textAlign(CENTER);
+  textSize(45);
+  noStroke();
+  text("x", 35, 45);
+
+
+  textSize(15);
+  text("score: " + Game.shared.scoreAttack, 125, 460);
+  // text("highscore: " + Game.shared.highscore, 570, 460);
+  textFont('Helvetica'); 
+  text("❤️", 65, 458);
+  
+  
+  textFont(myFont);
+  text(Game.shared.characterHealth, 35, 460);
+
+  Game.shared.character.show();
+  Game.shared.character.update();
+
+  if(Game.shared.enemies.length>15){
+    Game.shared.enemies.shift();
+  }
+  
+  // adds new enemies into array
+  if (frameCount % 100 == 0) {
+    Game.shared.enemies.push(new Enemy());
+  }
+
+  //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
+    for (//sets i to last index in array
+      let i = Game.shared.enemies.length - 1; 
+      i >= 0; i--){
+
+      let enemy = Game.shared.enemies[i];
+      enemy.show();
+      enemy.update();
+
+      const collided = enemy.detectCollisionCharacter(); // check once
+
+      if (collided) {
+        Game.shared.enemies.splice(i, 1); // remove if it hit home
+      }
+    }
+
+
+  for (var i = 0; i < Game.shared.bullets.length; i ++){
+    Game.shared.bullets[i].show();
+    Game.shared.bullets[i].update();
+
+    // if a collision is detected between bullet and enemy,
+    //removes that bullet from the array
+    if(Game.shared.bullets[i].detectCollisionAttack()){
+      Game.shared.bullets.splice(i,1);
+      }
+    }
+
+}
+
+function pauseGameAttack(){
+  fill(255);
+  textAlign(CENTER);
+  textSize(30);
+  strokeWeight(20);
+  text("GAME ATTACK PAUSED", width/2, height/2); 
+  textSize(15);
+  text("Press Enter to Resume", width/2, (height/2)+30);
+}
+
+function gameOverAttack(){
+  let playerScore = Game.shared.scoreAttack;
+  
+  fill(255);
+  textAlign(CENTER);
+  textSize(25);
+  text("You scored: " + playerScore, width / 2, 165);
+}
+
+
+function mousePressed() {
+  // defense or attack game is active
+  if(screen === 1 || screen === 6 ){
+    // Exit button area
+    if (mouseX > 10 && mouseX < 50 && mouseY > 10 && mouseY < 45) {
+      reset();
+      screen = 0;
+      }
+  }
+
+  // Pause button area
+  if (mouseX > 50 && mouseX < 74 && mouseY > 10 && mouseY < 50) {
+    if (screen === 1){
+      //defense
+      screen = 3;
+    
+    }
+    if (screen === 6){
+      //attack
+      screen = 7;
+    
+    }
+  }
+}
+
+function keyPressed(){
+//movement controls
   switch (keyCode) {
     case 87: // W key
       Game.shared.character.up();
@@ -358,14 +545,13 @@ function keyPressed(){
       Game.shared.character.state = 0;
       break;
   }
-
-  if (keyCode === 32 && screen == 1){
+//shooting controls for game
+  if (keyCode === 32 && (screen === 1 || screen === 6)){
     Game.shared.character.state = 1;
     Game.shared.bullets.push(new Bullet());
     if(Game.shared.bullets.length>8){
       Game.shared.bullets.shift();
     }
-
   }
 
   if (screen === 4 && keyCode === 13) {
@@ -387,27 +573,31 @@ function keyPressed(){
       nameInput.remove();
       submitButton.remove();      
     }
+    reset();
     screen = 0;
     return;
   }
 
 
-  if (keyCode === 13 && (screen === 0 || screen === 3)){
-    //start the game when entered is pressed on menu or pause
+  if (keyCode === 13 && (screen === 3)){
+    ////continue the game when entered is pressed on attack pause
       screen = 1;
     }
+
+    if (keyCode === 13 && screen === 7 ){
+      //continue the game when entered is pressed on attack pause
+        screen = 6;
+      }
 
 
   if (keyCode === 8 && screen === 5){
     //when backspace key is pressed on leaderboard game is restarted
-  Game.shared.health = 100;
-  Game.shared.score = 0;
-  Game.shared.bullets = [];
-  Game.shared.enemies = []; 
+    reset();
     screen = 1;
   }
 
   if (keyCode === 27){
+    reset();
     screen = 0;
   }
   

@@ -14,4 +14,11 @@ gameOver();
 case 5:
 showLeaderboard();
 
+case 6:
+runGameAttack();
 
+case 7:
+pauseGameAttack();
+
+case 8:
+gameOverAttack();
