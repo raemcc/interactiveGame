@@ -3,6 +3,9 @@ case 0:
 menu();
 
 case 1:
+controls();
+
+case 2:
 runGameDefense();
 
 case 3:
@@ -22,3 +25,9 @@ pauseGameAttack();
 
 case 8:
 gameOverAttack();
+
+case 9:
+zenMode();
+
+case 10:
+pauseGameZen();
