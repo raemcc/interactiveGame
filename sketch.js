@@ -20,7 +20,9 @@ class Game
   home = new Home();
   enemies=[];
   bullets=[];
+  characterBullets=[];
 
+  mode;
   highscoresList;
   sortedHighscores;
   lowestHighscore;
@@ -46,12 +48,14 @@ function preload(){
   vis1 = loadImage('media/enemy1.png');
   myFont = loadFont('media/minecraft.ttf');
   bg = loadImage('media/sky.png');
+  bgHome = loadImage('media/home.png');
+  bgBlueSky = loadImage('media/blueSky.png');
   
 }
 
 function setup() {
   createCanvas(640, 480); //pixels
-  screen = 0;
+  screen = 4;
   textFont(myFont);
 }
 
@@ -114,6 +118,19 @@ function menu(){
   text("MENU", width/2, 100); 
   textSize(25);
   text("Select mode: ", width/2, 150);
+  textSize(15);
+
+  text("The original", width-100, (height/2)+10);
+  text("gamemode!", width-100, (height/2)+30);
+  text("<-----", width-200,(height/2)+20);
+
+  text("Careful!", 100, height-(height/3)-20);
+  text("Pretty tricky!", 100, height-(height/3));
+  text("----->", 200, height-(height/3)-10);
+
+  text("For the most", width-100, height-(height/5)-30);
+  text("calm experience <3", width-100, height-(height/5)-5);
+  text("<-----", width-200, height-(height/5)-20);
 
   let buttonWidth = 133;
   let pos = (width/2) - (buttonWidth/2);
@@ -197,6 +214,7 @@ function reset(){
   Game.shared.scoreZen = 0;
 
   Game.shared.bullets = [];
+  Game.shared.characterBullets = [];
   Game.shared.enemies = [];
   Game.shared.prompted = false;
 
@@ -250,8 +268,10 @@ function controls(){
 
 
 function runGameDefense(){
-  
+  background(bgBlueSky);
+  Game.shared.mode = 1;
   Game.shared.prompted = false;
+
   let scoresData = JSON.parse(localStorage.getItem("highscores")) || [];
 
   // ensures scoresData is stored as array
@@ -264,54 +284,47 @@ function runGameDefense(){
   Game.shared.highscore = scoresDataInt.length > 0 ? Math.max(...scoresDataInt) : 0;
 
   
+  // shows "home" the area which takes damage from enemies
+  Game.shared.home.show();
+  console.log(mouseX, mouseY);
   noStroke();
-  fill(255);
+  fill(0);
 
   // lines to make pause button
-  rect(55,16,6,28);
-  rect(70,16,6,28);
+  rect(110,16,6,28);
+  rect(125,16,6,28);
   
   // text to make 'x' escape button
   textAlign(CENTER, BASELINE);
   textSize(45);
   noStroke();
-  text("x", 35, 45);
+  text("x", 90, 45);
 
-  if(mouseIsPressed==true){
-    //checks if mouse is pressed over exit button
-    if(mouseX<50 && mouseX>10 && mouseY<45 && mouseY>10){
-      Game.shared.score = 0;
-      screen=0;
-    }
-    //checks if mouse is pressed over pause button
-    if(mouseX<74 && mouseX>50
-      && mouseY<50 && mouseY>10){
-      screen=3; 
-      }
-  }
 
   // displays current score and current health
   textSize(15);
-  text("score: " + Game.shared.score, 120, 460);
-  text("highscore: " + Game.shared.highscore, 570, 460);
+  text("score: " + Game.shared.score, 180, 460);
+  text("highscore: " + Game.shared.highscore, 560, 460);
   textFont('Helvetica'); 
-  text("❤️", 65, 458);
+  text("❤️", 120, 458);
   
   
   textFont(myFont);
-  text(Game.shared.health, 35, 460);
+  text(Game.shared.health, 90, 460);
   
   // shows the character, makes sure character doesnt escape screen
   Game.shared.character.show();
   Game.shared.character.update();
 
-  // shows "home" the area which takes damage from enemies
-  Game.shared.home.show();
+  
   
   if(frameCount<400){
-    text("press spacebar to shoot.", width/2, height/2);
-    text("kill the enemies before they reach your base.", width/2, height/2+30);
+    fill(0);
+    textSize(20);
+    text("press spacebar to shoot.", width/2+30, height/2+30);
+    text("kill the enemies before they reach your base.", width/2+30, height/2+60);
   } else  if (frameCount % 100 == 0) {
+    // adds new enemies into array
     Game.shared.enemies.push(new Enemy());
   }
 
@@ -321,7 +334,7 @@ function runGameDefense(){
     Game.shared.enemies.shift();
   }
   
-  // adds new enemies into array
+  
  
   //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
     for (//sets i to last index in array
@@ -339,38 +352,36 @@ function runGameDefense(){
       }
     }
 
-    // if(Game.shared.enemies[i].hits(Game.shared.character)){
-    //   console.log("hit");
-    //   if(health>0){
-    //     health-=1;
-    //   } else {
-    //     screen = 0;
-    //   }
-    // }
-    
- 
-    //for loop iterates over each bullet and 
-    // runs show() and update() functions
-    for (var i = 0; i <Game.shared.bullets.length; i ++){
-      Game.shared.bullets[i].show();
-      Game.shared.bullets[i].update();
-
-      // if a collision is detected between bullet and enemy,
-      //removes that bullet from the array
-      if(Game.shared.bullets[i].detectCollision()){
-        Game.shared.bullets.splice(i,1);
-        }
+  //for loop iterates over each bullet and 
+  // runs show() and update() functions and checks for collisions
+    for (var i = 0; i < Game.shared.characterBullets.length; i ++){
+      let bullet = Game.shared.characterBullets[i];
+      Game.shared.characterBullets[i].show();
+      Game.shared.characterBullets[i].update();
+  
+      // if a collision is detected between bullet and an object,
+      // removes that bullet from the array
+     
+      if(bullet.detectCollision()){
+        Game.shared.characterBullets.splice(i,1);
       }
+    }
+    
 }
 
 function pauseGameDefence(){
-  fill(255);
+  background(bgBlueSky);
+  fill(0);
   textAlign(CENTER);
+
   textSize(30);
-  strokeWeight(20);
   text("GAME DEFENCE PAUSED", width/2, height/2); 
+
+  textSize(17);
+  text("Current Score: " + Game.shared.score, width/2, (height/2)+30); 
   textSize(15);
-  text("Press Enter to Resume", width/2, (height/2)+30);
+
+  text("Press Enter to Resume", width/2, (height/2)+60);
 }
 
 function gameOver(){
@@ -388,10 +399,9 @@ function gameOver(){
 
 function newHighScore(){
   let playerScore = Game.shared.score;
-  let sortedHighscores = Game.shared.sortedHighscores;
-  let lowestHighscore = Game.shared.lowestHighscore;
+  background(bgBlueSky);
 
-  fill(255);
+  fill(0);
   textAlign(CENTER);
   
   textSize(35);
@@ -407,8 +417,8 @@ function newHighScore(){
   if (!Game.shared.prompted) {
    
     nameInput = createInput();
-    nameInput.position(width / 2 - 120, height / 2 + 50);
-    nameInput.size(200);
+    nameInput.position(width / 2 - 170, height / 2 + 60);
+    nameInput.size(200,25);
     nameInput.attribute('maxlength', '8');
   
     submitButton = createButton("submit");
@@ -422,6 +432,7 @@ function newHighScore(){
 }
 
 function submitScore(){
+  let playerScore = Game.shared.score;
 
   console.log("Submit triggered");
 
@@ -437,9 +448,9 @@ function submitScore(){
     } 
 
     // Add the score and player name to the highscores
-    sortedHighscores.push({ name: playerName, score: playerScore });
-    sortedHighscores.sort((a, b) => b.score - a.score);
-    let trimmedHighscores = sortedHighscores.slice(0, 10);
+    Game.shared.sortedHighscores.push({ name: playerName, score: playerScore });
+    Game.shared.sortedHighscores.sort((a, b) => b.score - a.score);
+    let trimmedHighscores = Game.shared.sortedHighscores.slice(0, 10);
     
     //save updated highscores to local storage
     localStorage.setItem("highscores", JSON.stringify(trimmedHighscores));
@@ -453,24 +464,44 @@ function submitScore(){
 }
 
 function regularScore(){
+  let buttonWidth = 133;
+  let pos = (width/2) - (buttonWidth/2);
+
+  background(bgBlueSky);
   let playerScore = Game.shared.score;
-  let sortedHighscores = Game.shared.sortedHighscores;
-  let lowestHighscore = Game.shared.lowestHighscore;
-  // else {
-  //   console.log("lowest score: " + lowestHighscore);
-  //   console.log("scores length: " + sortedHighscores.length);
+  
+  //create x to exit screen
+  fill(0);
+  textAlign(CENTER, BASELINE);
+  textSize(45);
+  noStroke();
+  text("x", 35, 45);
 
-  //   textSize(20);
-  //   text("you didnt make it", width / 2, height / 2 + 60);
-  //   console.log("you didnt make it" );
-  //   text("Press Enter to Show Leaderboard", width/2, 425); 
-  // }
-
-  textSize(35);
-  fill(255);
+  textSize(25);
+  
   textAlign(CENTER);
 
-  text("you didnt make it", width/2, height/2);
+  text("You didn't make the leaderboard :(", width/2, 165);
+  text("You scored: " + playerScore, width / 2, height/2);
+
+  text("Press Enter to Show Leaderboard", width/2, 410);
+  text("Press Esc to Exit to Menu", width/2, 450);
+
+  if (!Game.shared.prompted) {
+  
+    tryagainButton = createButton("Try Again");
+    tryagainButton.class('my-button');
+    tryagainButton.position(pos, height / 2 + 40);
+    
+    tryagainButton.mousePressed(() => {
+      reset();
+      screen = 2;
+      tryagainButton.remove();
+    });
+        
+    Game.shared.prompted = true;
+  }
+
 }
 
 function showLeaderboard(){
@@ -515,7 +546,7 @@ function showLeaderboard(){
 
 
 function runGameAttack(){
-  
+  Game.shared.mode = 2;
   noStroke();
   fill(255);
   // lines to make pause button
@@ -523,7 +554,7 @@ function runGameAttack(){
   rect(70,16,6,28);
   
   // text to make 'x' escape button
-  textAlign(CENTEaR);
+  textAlign(CENTER);
   textSize(45);
   noStroke();
   text("x", 35, 45);
@@ -547,11 +578,15 @@ function runGameAttack(){
   }
   
   // adds new enemies into array
-  if (frameCount % 100 == 0) {
+  if(frameCount<400){
+    text("press spacebar to shoot.", width/2, height/2);
+    text("kill 20 enemies to win", width/2, height/2+30);
+  } else  if (frameCount % 100 == 0) {
     Game.shared.enemies.push(new Enemy());
   }
 
   //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
+
     for (//sets i to last index in array
       let i = Game.shared.enemies.length - 1; 
       i >= 0; i--){
@@ -559,26 +594,42 @@ function runGameAttack(){
       let enemy = Game.shared.enemies[i];
       enemy.show();
       enemy.update();
-
+      enemy.shoot();      
+      
       const collided = enemy.detectCollisionCharacter(); // check once
 
       if (collided) {
-        Game.shared.enemies.splice(i, 1); // remove if it hit home
+        Game.shared.enemies.splice(i, 1); // remove if it hit character
       }
     }
 
-
+  //for loop iterates over each bullet and 
+  // runs show() and update() functions and checks for collisions
   for (var i = 0; i < Game.shared.bullets.length; i ++){
+    let bullet = Game.shared.bullets[i];
     Game.shared.bullets[i].show();
     Game.shared.bullets[i].update();
 
-    // if a collision is detected between bullet and enemy,
-    //removes that bullet from the array
-    if(Game.shared.bullets[i].detectCollisionAttack()){
+    // if a collision is detected between bullet and an object,
+    // removes that bullet from the array
+    
+    if(bullet.detectCollision()){
       Game.shared.bullets.splice(i,1);
-      }
     }
+  }
+  for (var i = 0; i < Game.shared.characterBullets.length; i ++){
+    let charBullet = Game.shared.characterBullets[i];
+    charBullet.show();
+    charBullet.update();
+    
 
+    // if a collision is detected between bullet and an object,
+    // removes that bullet from the array
+   
+    if(charBullet.detectCollision()){
+      Game.shared.characterBullets.splice(i,1);
+    }
+  }
 }
 
 function pauseGameAttack(){
@@ -604,7 +655,7 @@ function gameOverAttack(){
 
 
 function zenMode(){
-  frameCount = 1;
+  Game.shared.mode = 3;
   noStroke();
   fill(255);
 
@@ -630,32 +681,38 @@ function zenMode(){
     Game.shared.enemies.shift();
   }
 
-  if (frameCount % 100 == 0) {
+  if(frameCount<400){
+    text("press spacebar to shoot.", width/2, height/2);
+    text("kill the enemies to earn points", width/2, height/2+30);
+  } else  if (frameCount % 100 == 0) {
     Game.shared.enemies.push(new Enemy());
   }
 
-    //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
-    for (//sets i to last index in array
-      let i = Game.shared.enemies.length - 1; 
-      i >= 0; i--){
+  //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
+  for (//sets i to last index in array
+    let i = Game.shared.enemies.length - 1; 
+    i >= 0; i--){
 
-      let enemy = Game.shared.enemies[i];
-      enemy.show();
-      enemy.update();
+    let enemy = Game.shared.enemies[i];
+    enemy.show();
+    enemy.update();
+    
+  }
 
-    }
-
-
+  //for loop iterates over each bullet and 
+  // runs show() and update() functions and checks for collisions
   for (var i = 0; i < Game.shared.bullets.length; i ++){
+    let bullet = Game.shared.bullets[i];
     Game.shared.bullets[i].show();
     Game.shared.bullets[i].update();
 
-    // if a collision is detected between bullet and enemy,
-    //removes that bullet from the array
-    if(Game.shared.bullets[i].detectCollisionZen()){
+    // if a collision is detected between bullet and an object,
+    // removes that bullet from the array
+   
+    if(bullet.detectCollision()){
       Game.shared.bullets.splice(i,1);
-      }
     }
+  }
 }
 
 function pauseGameZen(){
@@ -667,36 +724,55 @@ function pauseGameZen(){
   textSize(15);
   text("Press Enter to Resume", width/2, (height/2)+30);
 }
+
+
 // ---
 
 
 function mousePressed() {
 
-    // Exit button area
-    if (mouseX > 10 && mouseX < 50 && mouseY > 10 && mouseY < 45) {
-      reset();
-      screen = 0;
-      }
-  
-
-  // Pause button area
-  if (mouseX > 50 && mouseX < 74 && mouseY > 10 && mouseY < 50) {
-
-    if (screen === 2){
-      //defense
-      screen = 3;
-    }
-
-    if (screen === 6){
-      //attack
-      screen = 7;
-    }
-
-    if (screen === 9){
-      //attack
-      screen = 10;
-    }
+// Exit button area
+  if ( mouseX > 10 && mouseX < 50 
+    && mouseY > 10 && mouseY < 45 ) 
+  {
+    reset();
+    screen = 0;
   }
+  
+  if ( Game.shared.mode = 1 
+    && mouseX > 70 && mouseX < 100 
+    && mouseY > 10 && mouseY < 45 )
+  {
+    reset();
+    screen = 0;
+  }
+
+// Pause button area
+  if ( Game.shared.mode = 1)
+  {
+    if ( mouseX > 105 && mouseX < 130
+      && mouseY > 10 && mouseY <50 )
+      {
+        screen = 3;
+      }
+  }
+    
+    if ( mouseX > 50 && mouseX < 74 
+      && mouseY > 10 && mouseY < 50 ) 
+    {
+
+      if (screen === 6)
+      {
+        //attack
+        screen = 7;
+      }
+
+      if (screen === 9)
+      {
+        //zen
+        screen = 10;
+      }
+    }
 }
 
 function keyPressed(){
@@ -721,10 +797,13 @@ function keyPressed(){
   }
 //shooting controls for game
   if (keyCode === 32 && (screen === 2 || screen === 6 || screen  === 9 )){
+
     Game.shared.character.state = 1;
-    Game.shared.bullets.push(new Bullet());
-    if(Game.shared.bullets.length>8){
-      Game.shared.bullets.shift();
+
+    Game.shared.characterBullets.push(new Bullet(Game.shared.character));
+
+    if(Game.shared.characterBullets.length>8){
+      Game.shared.characterBullets.shift();
     }
   }
 

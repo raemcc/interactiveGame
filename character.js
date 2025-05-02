@@ -8,7 +8,7 @@ class Character
   {
     
     this.y = 240;
-    this.x = 64;
+    this.x = 100;
     this.size = 50;
     this.state = 0;
     this.speed = 0;
@@ -19,8 +19,11 @@ class Character
 
 
   show() {
+    fill(255);
+
     if(this.state == 0){
       image(img, this.x-25, this.y-25, this.size, this.size);
+      
     } else{
       image(img2, this.x-25, this.y-25, this.size, this.size);
     }
@@ -72,10 +75,20 @@ class Character
     }
 
     // hits the left of the screen
-    if (this.x <16) {
+    if(Game.shared.mode = 1)
+    {
+      if(this.x < 82)
+      {
+        this.x = 82;
+        this.speed = this.speed *-0.2;
+      }
+    } 
+    else if (this.x <16) 
+    {
       this.x = 16;
       this.speed = this.speed *-0.2;
     }
+    
 
     if(this.velocity > 10) {
       this.velocity = 10;

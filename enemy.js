@@ -11,8 +11,8 @@ class Enemy
     
     this.x = 590;
     this.y = random(10,400);
-    this.type = round(random(0,2))
-    
+    this.type = round(random(0,2));
+    this.shootInterval = floor(random(50,100));
     
     if (this.type == 0){
       this.size = 40;
@@ -36,7 +36,7 @@ class Enemy
 
 detectCollisionHome(){
 
-  if(this.x<20){
+  if(this.x<63){
     //if enemy past home
     let impact;
     if(this.size >=80) {
@@ -50,7 +50,6 @@ detectCollisionHome(){
     Game.shared.health -= impact;
     Game.shared.health = max(Game.shared.health, 0); // Keep it above 0
 
-    console.log(`Enemy hit home! Impact: ${impact}, Health: ${Game.shared.health}`);
 
     if (Game.shared.health <= 0) {
       screen = 4;
@@ -88,19 +87,29 @@ detectCollisionCharacter(){
   } return false;
 }
 
-  show() 
-  {
-    if(this.type==0){
-      image(enemy2, this.x, this.y, this.size, this.size);
-    }else if(this.type == 1){
-      image(pic3, this.x, this.y, this.size, this.size);
-    }else{
-      image(vis1, this.x, this.y, this.size, this.size);
-    }
+shoot()
+{
+  if(
+    frameCount %  this.shootInterval == 0
+  ){
+    console.log(this.shootInterval);
+    Game.shared.bullets.push(new Bullet(this))
   }
+}
+show() 
+{
+  if(this.type==0){
+    image(enemy2, this.x, this.y, this.size, this.size);
+    
+  }else if(this.type == 1){
+    image(pic3, this.x, this.y, this.size, this.size);
+  }else{
+    image(vis1, this.x, this.y, this.size, this.size);
+  }
+}
 
-  update()
-  {
-  this.x -=this.speed;
-  }
+update()
+{
+this.x -=this.speed;
+}
 }
