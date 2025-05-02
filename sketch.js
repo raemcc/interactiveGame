@@ -55,7 +55,7 @@ function preload(){
 
 function setup() {
   createCanvas(640, 480); //pixels
-  screen = 4;
+  screen = 0;
   textFont(myFont);
 }
 
