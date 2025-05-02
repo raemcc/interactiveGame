@@ -106,6 +106,9 @@ function draw(){
         pauseGameZen();
         break;
 
+      case 11:
+        gameWinAttack();
+        break;
     }
 }
 
@@ -652,7 +655,19 @@ function gameOverAttack(){
   textAlign(CENTER);
   textSize(25);
   text("You scored: " + playerScore, width / 2, 165);
+  text("LOSE", width / 2, 165);
 }
+
+function gameWinAttack(){
+  let playerScore = Game.shared.scoreAttack;
+  
+  fill(255);
+  textAlign(CENTER);
+  textSize(25);
+  text("You scored: " + playerScore, width / 2, 165);
+  text("WIN", width / 2, 165);
+}
+
 
 // ---
 

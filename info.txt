@@ -31,3 +31,6 @@ zenMode();
 
 case 10:
 pauseGameZen();
+
+case 11:
+gameWinAttack();
