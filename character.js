@@ -75,7 +75,7 @@ class Character
     }
 
     // hits the left of the screen
-    if(Game.shared.mode = 1)
+    if(Game.shared.mode === 1)
     {
       if(this.x < 82)
       {

@@ -206,6 +206,7 @@ function menu(){
 }
 
 function reset(){
+  
   Game.shared.health = 100;
   Game.shared.characterHealth = 100;
 
@@ -566,13 +567,14 @@ function runGameAttack(){
   textFont('Helvetica'); 
   text("❤️", 65, 458);
   
-  
   textFont(myFont);
   text(Game.shared.characterHealth, 35, 460);
 
+  console.log("IN runGameAttack, mode is:", Game.shared.mode);
+
   Game.shared.character.show();
   Game.shared.character.update();
-
+  console.log("IN runGameAttack test 1, mode is:", Game.shared.mode);
   if(Game.shared.enemies.length>15){
     Game.shared.enemies.shift();
   }
@@ -584,7 +586,7 @@ function runGameAttack(){
   } else  if (frameCount % 100 == 0) {
     Game.shared.enemies.push(new Enemy());
   }
-
+console.log("IN runGameAttack test 2, mode is:", Game.shared.mode);
   //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
 
     for (//sets i to last index in array
@@ -614,6 +616,7 @@ function runGameAttack(){
     // removes that bullet from the array
     
     if(bullet.detectCollision()){
+      
       Game.shared.bullets.splice(i,1);
     }
   }
@@ -621,7 +624,7 @@ function runGameAttack(){
     let charBullet = Game.shared.characterBullets[i];
     charBullet.show();
     charBullet.update();
-    
+    console.log("IN runGameAttack test 3, mode is:", Game.shared.mode);
 
     // if a collision is detected between bullet and an object,
     // removes that bullet from the array
@@ -739,8 +742,10 @@ function mousePressed() {
     screen = 0;
   }
   
-  if ( Game.shared.mode = 1 
-    && mouseX > 70 && mouseX < 100 
+  if ( 
+    Game.shared.mode === 1 
+    && 
+    mouseX > 70 && mouseX < 100 
     && mouseY > 10 && mouseY < 45 )
   {
     reset();
@@ -748,7 +753,7 @@ function mousePressed() {
   }
 
 // Pause button area
-  if ( Game.shared.mode = 1)
+  if ( Game.shared.mode === 1)
   {
     if ( mouseX > 105 && mouseX < 130
       && mouseY > 10 && mouseY <50 )

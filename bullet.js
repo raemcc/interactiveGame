@@ -58,7 +58,7 @@ class Bullet
       {
         //check x axis
         if  (
-          this.x+10> enemy.x && 
+          this.x+10 > enemy.x && 
           this.x < enemy.x + enemy.size
           ) {
             //if true, check y axis
@@ -66,10 +66,13 @@ class Bullet
                 this.y+3 >= enemy.y && 
                 this.y <= enemy.y + enemy.size
               ) {
+                console.log("hit");
                   //if true its a hit
                   //deal with enemies that have been hit & update score
                   if(Game.shared.enemies[i].health <=1)
                     {
+                      console.log("killed");
+                      console.log(Game.shared.mode);
                       //enemy is killed and removed from array
                       Game.shared.enemies.splice(i,1);
                       // score is updated by 1 based on game mode 
@@ -81,6 +84,7 @@ class Bullet
                         break;
 
                         case 2:
+                          console.log("attack mode detected");
                         //attack mode
                           Game.shared.scoreAttack +=1;
                           if(Game.shared.scoreAttack>=19)
