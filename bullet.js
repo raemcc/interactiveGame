@@ -87,9 +87,9 @@ class Bullet
                           console.log("attack mode detected");
                         //attack mode
                           Game.shared.scoreAttack +=1;
-                          if(Game.shared.scoreAttack>=19)
+                          if(Game.shared.scoreAttack>19)
                           {
-                          screen=8;
+                          screen=11;
                           }
                         break;
 
