@@ -16,6 +16,8 @@ class Game
   highscore;
 
   prompted = false;
+  soundPlayed;
+
   character = new Character();
   home = new Home();
   enemies=[];
@@ -50,11 +52,17 @@ function preload(){
   bg = loadImage('media/sky.png');
   bgHome = loadImage('media/home.png');
   bgBlueSky = loadImage('media/blueSky.png');
+
+  
+  winSound = loadSound('media/win.mp3');
+  loseSound = loadSound('media/lose.mp3');
+  menuClickSound = loadSound('media/menu_click.mp3');
   
 }
 
 function setup() {
   createCanvas(640, 480); //pixels
+  reset();
   screen = 0;
   textFont(myFont);
 }
@@ -123,16 +131,16 @@ function menu(){
   text("Select mode: ", width/2, 150);
   textSize(15);
 
-  text("The original", width-100, (height/2)+10);
-  text("gamemode!", width-100, (height/2)+30);
+  text("A good place", width-100, (height/2)+10);
+  text("To Start :)", width-100, (height/2)+30);
   text("<-----", width-200,(height/2)+20);
 
-  text("Careful!", 100, height-(height/3)-20);
-  text("Pretty tricky!", 100, height-(height/3));
+  text("The original", 100, height-(height/3)-20);
+  text("gamemode!", 100, height-(height/3));
   text("----->", 200, height-(height/3)-10);
 
-  text("For the most", width-100, height-(height/5)-30);
-  text("calm experience <3", width-100, height-(height/5)-5);
+  text("Careful!", width-100, height-(height/5)-30);
+  text("Pretty tricky !!!", width-100, height-(height/5)-5);
   text("<-----", width-200, height-(height/5)-20);
 
   let buttonWidth = 133;
@@ -143,23 +151,24 @@ function menu(){
     controlsButton.class('my-button');
     controlsButton.position(pos, 200);
 
+    zenButton = createButton("Training Mode");
+    zenButton.class('my-button');
+    zenButton.position((width/2)- (buttonWidth/2),250);
+
     defenceButton = createButton("Defence Mode");
     defenceButton.class('my-button');
-    defenceButton.position(pos, 250);
+    defenceButton.position(pos, 300);
 
     attackButton = createButton("Attack Mode");
     attackButton.class('my-button');
-    attackButton.position((width/2)- (buttonWidth/2),300);
-
-    zenButton = createButton("Zen Mode");
-    zenButton.class('my-button');
-    zenButton.position((width/2)- (buttonWidth/2),350);
+    attackButton.position((width/2)- (buttonWidth/2),350);
 
     leaderboardButton = createButton("Leaderboard");
     leaderboardButton.class('my-button');
     leaderboardButton.position((width/2)- (buttonWidth/2),400);
 
     controlsButton.mousePressed(() => {
+      menuClickSound.play();
       screen = 1;
       defenceButton.remove();
       attackButton.remove();
@@ -167,7 +176,9 @@ function menu(){
       zenButton.remove();
       controlsButton.remove();
     });
+
     defenceButton.mousePressed(() => {
+      menuClickSound.play();
       screen = 2;
       defenceButton.remove();
       attackButton.remove();
@@ -177,6 +188,7 @@ function menu(){
     });
 
     attackButton.mousePressed(() => {
+      menuClickSound.play();
       screen = 6;
       defenceButton.remove();
       attackButton.remove();
@@ -186,6 +198,7 @@ function menu(){
     });
 
     zenButton.mousePressed(() => {
+      menuClickSound.play();
       screen = 9;
       defenceButton.remove();
       attackButton.remove();
@@ -195,6 +208,7 @@ function menu(){
     });
     
     leaderboardButton.mousePressed(() => {
+      menuClickSound.play();
       screen = 5;
       defenceButton.remove();
       attackButton.remove();
@@ -220,7 +234,9 @@ function reset(){
   Game.shared.bullets = [];
   Game.shared.characterBullets = [];
   Game.shared.enemies = [];
+
   Game.shared.prompted = false;
+  Game.shared.soundPlayed = 1;
 
   Game.shared.home = new Home();
   Game.shared.character = new Character();
@@ -290,7 +306,7 @@ function runGameDefense(){
   
   // shows "home" the area which takes damage from enemies
   Game.shared.home.show();
-  console.log(mouseX, mouseY);
+
   noStroke();
   fill(0);
 
@@ -429,7 +445,11 @@ function newHighScore(){
     submitButton.class('my-button');
     submitButton.position(nameInput.x + 210, nameInput.y);
     
-    submitButton.mousePressed(submitScore);
+    submitButton.mousePressed(() => {
+      submitScore();
+      menuClickSound.play();
+    }
+    );
         
     Game.shared.prompted = true;
   }
@@ -470,21 +490,20 @@ function submitScore(){
 function regularScore(){
   let buttonWidth = 133;
   let pos = (width/2) - (buttonWidth/2);
+  
 
+  
   background(bgBlueSky);
   let playerScore = Game.shared.score;
-  
-  //create x to exit screen
-  fill(0);
-  textAlign(CENTER, BASELINE);
-  textSize(45);
-  noStroke();
-  text("x", 35, 45);
 
   textSize(25);
   
   textAlign(CENTER);
 
+  if(Game.shared.soundPlayed === 1){
+    loseSound.play();
+    Game.shared.soundPlayed = 0;
+  }
   text("You didn't make the leaderboard :(", width/2, 165);
   text("You scored: " + playerScore, width / 2, height/2);
 
@@ -498,12 +517,14 @@ function regularScore(){
     tryagainButton.position(pos, height / 2 + 40);
     
     tryagainButton.mousePressed(() => {
+      menuClickSound.play();
       reset();
       screen = 2;
       tryagainButton.remove();
     });
         
     Game.shared.prompted = true;
+    
   }
 
 }
@@ -546,6 +567,7 @@ function showLeaderboard(){
   }
 }
 
+
 // ---
 
 
@@ -573,11 +595,9 @@ function runGameAttack(){
   textFont(myFont);
   text(Game.shared.characterHealth, 35, 460);
 
-  console.log("IN runGameAttack, mode is:", Game.shared.mode);
-
   Game.shared.character.show();
   Game.shared.character.update();
-  console.log("IN runGameAttack test 1, mode is:", Game.shared.mode);
+
   if(Game.shared.enemies.length>15){
     Game.shared.enemies.shift();
   }
@@ -589,7 +609,7 @@ function runGameAttack(){
   } else  if (frameCount % 100 == 0) {
     Game.shared.enemies.push(new Enemy());
   }
-console.log("IN runGameAttack test 2, mode is:", Game.shared.mode);
+
   //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
 
     for (//sets i to last index in array
@@ -627,7 +647,6 @@ console.log("IN runGameAttack test 2, mode is:", Game.shared.mode);
     let charBullet = Game.shared.characterBullets[i];
     charBullet.show();
     charBullet.update();
-    console.log("IN runGameAttack test 3, mode is:", Game.shared.mode);
 
     // if a collision is detected between bullet and an object,
     // removes that bullet from the array
@@ -654,7 +673,7 @@ function gameOverAttack(){
   fill(255);
   textAlign(CENTER);
   textSize(25);
-  text("You scored: " + playerScore, width / 2, 165);
+  text("You scored: " + playerScore, width / 2,200);
   text("LOSE", width / 2, 165);
 }
 
@@ -664,8 +683,8 @@ function gameWinAttack(){
   fill(255);
   textAlign(CENTER);
   textSize(25);
-  text("You scored: " + playerScore, width / 2, 165);
-  text("WIN", width / 2, 165);
+  text("You scored: " + playerScore, width2,200);
+  text("YOU WON", width / 2, 165);
 }
 
 
@@ -689,7 +708,7 @@ function zenMode(){
 
 
   textSize(15);
-  text("score: " + Game.shared.scoreZen, 125, 460);
+  text("score: " + Game.shared.scoreZen, 55, 460);
 
 
   Game.shared.character.show();
@@ -702,7 +721,14 @@ function zenMode(){
   if(frameCount<400){
     text("press spacebar to shoot.", width/2, height/2);
     text("kill the enemies to earn points", width/2, height/2+30);
-  } else  if (frameCount % 100 == 0) {
+  } 
+  else if (frameCount<800)
+  {
+    text("use W A S D keys to move", width/2, height/2);
+    text("use space bar to shoot", width/2, height/2+30);
+  }
+  else if (frameCount % 100 == 0) 
+  {
     Game.shared.enemies.push(new Enemy());
   }
 
@@ -719,16 +745,16 @@ function zenMode(){
 
   //for loop iterates over each bullet and 
   // runs show() and update() functions and checks for collisions
-  for (var i = 0; i < Game.shared.bullets.length; i ++){
-    let bullet = Game.shared.bullets[i];
-    Game.shared.bullets[i].show();
-    Game.shared.bullets[i].update();
+  for (var i = 0; i < Game.shared.characterBullets.length; i ++){
+    let bullet = Game.shared.characterBullets[i];
+    Game.shared.characterBullets[i].show();
+    Game.shared.characterBullets[i].update();
 
     // if a collision is detected between bullet and an object,
     // removes that bullet from the array
    
     if(bullet.detectCollision()){
-      Game.shared.bullets.splice(i,1);
+      Game.shared.characterBullets.splice(i,1);
     }
   }
 }
@@ -753,6 +779,7 @@ function mousePressed() {
   if ( mouseX > 10 && mouseX < 50 
     && mouseY > 10 && mouseY < 45 ) 
   {
+    menuClickSound.play();
     reset();
     screen = 0;
   }
@@ -763,6 +790,7 @@ function mousePressed() {
     mouseX > 70 && mouseX < 100 
     && mouseY > 10 && mouseY < 45 )
   {
+    menuClickSound.play();
     reset();
     screen = 0;
   }
@@ -773,6 +801,7 @@ function mousePressed() {
     if ( mouseX > 105 && mouseX < 130
       && mouseY > 10 && mouseY <50 )
       {
+        menuClickSound.play();
         screen = 3;
       }
   }
@@ -784,12 +813,14 @@ function mousePressed() {
       if (screen === 6)
       {
         //attack
+        menuClickSound.play();
         screen = 7;
       }
 
       if (screen === 9)
       {
         //zen
+        menuClickSound.play();
         screen = 10;
       }
     }
@@ -831,9 +862,11 @@ function keyPressed(){
     console.log("ENTER key pressed");
     if (submitButton) {
       // if there is a submit button , press it
+      menuClickSound.play();
       submitScore();
     } else {
       // no submit button continue to leaderboard
+      menuClickSound.play();
       console.log("submitButton not defined yet");
       screen = 5;
     }
@@ -844,8 +877,10 @@ function keyPressed(){
     if (submitButton) {
       //clear input and button if they exist
       nameInput.remove();
-      submitButton.remove();      
+      submitButton.remove();
+      tryagainButton.remove();     
     }
+    menuClickSound.play();
     reset();
     screen = 0;
     return;
@@ -875,6 +910,7 @@ function keyPressed(){
   }
 
   if (keyCode === 27){
+    menuClickSound.play();
     reset();
     screen = 0;
   }

@@ -10,7 +10,6 @@ class Home
   show() 
   {
     fill('white');
-    rect(this.x, this.y, 20, 370);
     image(bgHome, this.x, this.y, 66, 480);
   }
   

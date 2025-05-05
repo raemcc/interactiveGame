@@ -1,4 +1,5 @@
 
+let winSound;
 class Bullet
 {
 
@@ -66,15 +67,13 @@ class Bullet
                 this.y+3 >= enemy.y && 
                 this.y <= enemy.y + enemy.size
               ) {
-                console.log("hit");
                   //if true its a hit
                   //deal with enemies that have been hit & update score
                   if(Game.shared.enemies[i].health <=1)
                     {
-                      console.log("killed");
-                      console.log(Game.shared.mode);
                       //enemy is killed and removed from array
                       Game.shared.enemies.splice(i,1);
+                      winSound.play();
                       // score is updated by 1 based on game mode 
                       switch (Game.shared.mode) 
                       {
@@ -126,7 +125,7 @@ class Bullet
     if(this.shooter != character)
       //shot by enemy
       {
-        //bullets movce slighgtly faster than fastest enemy
+        //bullets movce slightly faster than fastest enemy
         this.x -=4;
       } 
       else 
