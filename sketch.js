@@ -168,6 +168,7 @@ function menu(){
     leaderboardButton.position((width/2)- (buttonWidth/2),400);
 
     controlsButton.mousePressed(() => {
+      reset();
       menuClickSound.play();
       screen = 1;
       defenceButton.remove();
@@ -178,6 +179,7 @@ function menu(){
     });
 
     defenceButton.mousePressed(() => {
+      reset();
       menuClickSound.play();
       screen = 2;
       defenceButton.remove();
@@ -188,6 +190,7 @@ function menu(){
     });
 
     attackButton.mousePressed(() => {
+      reset();
       menuClickSound.play();
       screen = 6;
       defenceButton.remove();
@@ -198,6 +201,7 @@ function menu(){
     });
 
     zenButton.mousePressed(() => {
+      reset();
       menuClickSound.play();
       screen = 9;
       defenceButton.remove();
@@ -208,6 +212,7 @@ function menu(){
     });
     
     leaderboardButton.mousePressed(() => {
+      reset();
       menuClickSound.play();
       screen = 5;
       defenceButton.remove();
@@ -240,7 +245,6 @@ function reset(){
 
   Game.shared.home = new Home();
   Game.shared.character = new Character();
-  background(bg);
   
   frameCount = 0;
   textAlign(CENTER,BASELINE);
@@ -336,7 +340,7 @@ function runGameDefense(){
   Game.shared.character.show();
   Game.shared.character.update();
 
-  
+  console.log(frameCount);
   
   if(frameCount<400){
     fill(0);
