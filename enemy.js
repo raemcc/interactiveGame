@@ -3,6 +3,7 @@ let enemy2;
 let pic3;
 let enemySize;
 let impact;
+let hitHomeSound;
 
 class Enemy
 {
@@ -34,65 +35,77 @@ class Enemy
     }
   }
 
-detectCollisionHome(){
 
-  if(this.x<63){
-    //if enemy past home
-    let impact;
-    if(this.size >=80) {
-      impact = 60;
-    } else if (this.size >= 60) {
-      impact = 40;
-    } else {
-      impact = 20;
+//checks for enemy collisions with character and home
+
+detectCollision(mode = 'Both')
+{
+  if(mode === 'Home' || mode === 'Both')
+  {
+    if(this.x<63){
+
+      //if enemy past home
+      let impact;
+      if(this.size >=80) {
+        impact = 60;
+      } else if (this.size >= 60) {
+        impact = 40;
+      } else {
+        impact = 20;
+      }
+      console.log("Enemy hit home!");
+      hitHomeSound.play();
+      
+      Game.shared.home.health -= impact;
+      Game.shared.home.health = max(Game.shared.home.health, 0); // Keep it above 0
+
+      if (Game.shared.home.health <= 0) {
+        screen = 4;
+      }
+  
+    //collision was detected
+    return true;
     }
-
-    Game.shared.health -= impact;
-    Game.shared.health = max(Game.shared.health, 0); // Keep it above 0
-
-
-    if (Game.shared.health <= 0) {
-      screen = 4;
-    }
-
-  //collision was detected
-  return true;
   }
-  //collision was not detected
-  return false;
-}
-
-detectCollisionCharacter(){
-  const char = Game.shared.character;
-  if (this.x < char.x + 32 && 
-      this.x + this.size > char.x && 
-      this.y < char.y + 32 && 
-      this.y + this.size > char.y) {
-
+  if(mode === 'Character' || mode === 'Both')
+  {
+    const char = Game.shared.character;
+    if (this.x < char.x + 32 && 
+        this.x + this.size > char.x && 
+        this.y < char.y + 32 && 
+        this.y + this.size > char.y) 
+      {
+  
         let damage;
-        if(this.size >=80) {
+        if(this.size >=80) 
+        {
           damage = 20;
-        } else if (this.size >= 60) {
+        } 
+        else if (this.size >= 60) 
+        {
           damage = 15;
-        } else {
+        } 
+        else 
+        {
           damage = 5;
         }
+  
+        console.log("Enemy hit character!");
 
-      console.log("Enemy hit character!");
-      Game.shared.characterHealth -= damage;
-      if (Game.shared.characterHealth <= 0) {
-        screen = 8;
-      }
-      return true; // Collision detected
-  } return false;
+        Game.shared.character.health -= damage;
+
+        if (Game.shared.character.health <= 0) {
+          screen = 8;
+        }
+        return true; // Collision detected
+      } 
+  }
 }
-
 shoot()
 {
   if(
     frameCount %  this.shootInterval == 0
   ){
-    console.log(this.shootInterval);
     Game.shared.bullets.push(new Bullet(this))
   }
 }

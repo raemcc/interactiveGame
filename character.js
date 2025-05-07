@@ -15,6 +15,8 @@ class Character
     this.gravity = 0.5;
     this.velocity = 0;
     this.lift = -8;
+    this.health = 100;
+    this.score = 0;
   }
 
 

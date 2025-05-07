@@ -1,5 +1,7 @@
 
-let winSound;
+let hitEnemySound;
+
+
 class Bullet
 {
 
@@ -42,9 +44,9 @@ class Bullet
             ) {
                 //bullet has hit the player
                 console.log("bullet has hit player");
-
-                Game.shared.characterHealth -= 10;
-                  if (Game.shared.characterHealth <= 0) 
+                hitHomeSound.play();
+                Game.shared.character.health -= 10;
+                  if (Game.shared.character.health <= 0) 
                   {
                     screen = 8;
                   }
@@ -73,7 +75,7 @@ class Bullet
                     {
                       //enemy is killed and removed from array
                       Game.shared.enemies.splice(i,1);
-                      winSound.play();
+                      hitEnemySound.play();
                       // score is updated by 1 based on game mode 
                       switch (Game.shared.mode) 
                       {
@@ -83,18 +85,17 @@ class Bullet
                         break;
 
                         case 2:
-                          console.log("attack mode detected");
                         //attack mode
-                          Game.shared.scoreAttack +=1;
-                          if(Game.shared.scoreAttack>19)
+                          Game.shared.score +=1;
+                          if(Game.shared.score>19)
                           {
                           screen=11;
                           }
                         break;
 
                         case 3:
-                        //zen mode
-                        Game.shared.scoreZen +=1;
+                        //training mode
+                        Game.shared.score +=1;
                         break;
                       }
                     } 

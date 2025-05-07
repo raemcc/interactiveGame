@@ -27,10 +27,10 @@ case 8:
 gameOverAttack();
 
 case 9:
-zenMode();
+trainingMode();
 
 case 10:
-pauseGameZen();
+pauseGametraining();
 
 case 11:
 gameWinAttack();

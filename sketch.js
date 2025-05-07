@@ -7,12 +7,9 @@ let submitButton;
 class Game
 {
   static shared = new Game();
-  health = 100;
-  characterHealth = 100;
 
   score = 0;
-  scoreAttack = 0;
-  scoreZen = 0;
+
   highscore;
 
   prompted = false;
@@ -29,12 +26,17 @@ class Game
   sortedHighscores;
   lowestHighscore;
 
+  customFrameCount;
+
   constructor() {
-    //get local list of highscores
+    let score = this.character.score;
+
+    //get local list of highscores from browsers localStorage, if there are none, highscores list is an empty array
+    // converts from json string into javascript array
     this.highscoresList = JSON.parse(localStorage.getItem("highscores")) || [];
     //sort by descending
     this.sortedHighscores = [...this.highscoresList].sort((a, b) => b.score - a.score);
-    //get lowest score
+    //get lowest score if there are more than 0 scores, else lowest score = 0
     this.lowestHighscore = this.sortedHighscores.length > 0
       ? this.sortedHighscores[this.sortedHighscores.length - 1].score
       : 0;
@@ -45,17 +47,22 @@ class Game
 function preload(){
   img = loadImage('media/character.png');
   img2 = loadImage('media/character2.png');
+
   enemy2 = loadImage('media/enemy2.png');
   pic3 = loadImage('media/enemy3.png');
   vis1 = loadImage('media/enemy1.png');
+
+  imgHome = loadImage('media/home.png');
+
   myFont = loadFont('media/minecraft.ttf');
+
   bg = loadImage('media/sky.png');
-  bgHome = loadImage('media/home.png');
   bgBlueSky = loadImage('media/blueSky.png');
 
-  
-  winSound = loadSound('media/win.mp3');
+  hitHomeSound = loadSound('media/hitHome.mp3');
+  hitEnemySound = loadSound('media/hitEnemy.mp3');
   loseSound = loadSound('media/lose.mp3');
+  winSound = loadSound('media/gameWin.mp3');
   menuClickSound = loadSound('media/menu_click.mp3');
   
 }
@@ -78,8 +85,8 @@ function draw(){
         controls();
         break;
 
-      case 2:
-      runGameDefense();
+      case 2:   
+        runGameDefense();
       break;
 
       case 3:
@@ -107,11 +114,11 @@ function draw(){
         break;
 
       case 9:
-        zenMode();
+        trainingMode();
         break;
       
       case 10:
-        pauseGameZen();
+        pauseGametraining();
         break;
 
       case 11:
@@ -151,9 +158,9 @@ function menu(){
     controlsButton.class('my-button');
     controlsButton.position(pos, 200);
 
-    zenButton = createButton("Training Mode");
-    zenButton.class('my-button');
-    zenButton.position((width/2)- (buttonWidth/2),250);
+    trainingButton = createButton("Training Mode");
+    trainingButton.class('my-button');
+    trainingButton.position((width/2)- (buttonWidth/2),250);
 
     defenceButton = createButton("Defence Mode");
     defenceButton.class('my-button');
@@ -168,57 +175,57 @@ function menu(){
     leaderboardButton.position((width/2)- (buttonWidth/2),400);
 
     controlsButton.mousePressed(() => {
-      reset();
       menuClickSound.play();
+      reset();
       screen = 1;
       defenceButton.remove();
       attackButton.remove();
       leaderboardButton.remove();
-      zenButton.remove();
+      trainingButton.remove();
       controlsButton.remove();
     });
 
     defenceButton.mousePressed(() => {
-      reset();
       menuClickSound.play();
+      reset();
       screen = 2;
       defenceButton.remove();
       attackButton.remove();
       leaderboardButton.remove();
-      zenButton.remove();
+      trainingButton.remove();
       controlsButton.remove();
     });
 
     attackButton.mousePressed(() => {
-      reset();
       menuClickSound.play();
+      reset();
       screen = 6;
       defenceButton.remove();
       attackButton.remove();
       leaderboardButton.remove();
-      zenButton.remove();
+      trainingButton.remove();
       controlsButton.remove();
     });
 
-    zenButton.mousePressed(() => {
-      reset();
+    trainingButton.mousePressed(() => {
       menuClickSound.play();
+      reset();
       screen = 9;
       defenceButton.remove();
       attackButton.remove();
       leaderboardButton.remove();
-      zenButton.remove();
+      trainingButton.remove();
       controlsButton.remove();
     });
     
     leaderboardButton.mousePressed(() => {
-      reset();
       menuClickSound.play();
+      reset();
       screen = 5;
       defenceButton.remove();
       attackButton.remove();
       leaderboardButton.remove();
-      zenButton.remove();
+      trainingButton.remove();
       controlsButton.remove();
     });
 
@@ -228,13 +235,8 @@ function menu(){
 }
 
 function reset(){
-  
-  Game.shared.health = 100;
-  Game.shared.characterHealth = 100;
 
   Game.shared.score = 0;
-  Game.shared.scoreAttack = 0;
-  Game.shared.scoreZen = 0;
 
   Game.shared.bullets = [];
   Game.shared.characterBullets = [];
@@ -246,10 +248,14 @@ function reset(){
   Game.shared.home = new Home();
   Game.shared.character = new Character();
   
-  frameCount = 0;
+  Game.shared.customFrameCount = 0;
+
   textAlign(CENTER,BASELINE);
   console.log("reset complete");
 }
+
+// ---
+
 
 function controls(){
   textAlign(CENTER, BASELINE);
@@ -295,6 +301,7 @@ function runGameDefense(){
   background(bgBlueSky);
   Game.shared.mode = 1;
   Game.shared.prompted = false;
+  Game.shared.customFrameCount++;
 
   let scoresData = JSON.parse(localStorage.getItem("highscores")) || [];
 
@@ -334,20 +341,21 @@ function runGameDefense(){
   
   
   textFont(myFont);
-  text(Game.shared.health, 90, 460);
+  text(Game.shared.home.health, 90, 460);
   
   // shows the character, makes sure character doesnt escape screen
   Game.shared.character.show();
   Game.shared.character.update();
 
-  console.log(frameCount);
-  
-  if(frameCount<400){
+  if(Game.shared.customFrameCount<400)
+  {
     fill(0);
     textSize(20);
     text("press spacebar to shoot.", width/2+30, height/2+30);
     text("kill the enemies before they reach your base.", width/2+30, height/2+60);
-  } else  if (frameCount % 100 == 0) {
+  } 
+  else  if (Game.shared.customFrameCount % 100 == 0) 
+  {
     // adds new enemies into array
     Game.shared.enemies.push(new Enemy());
   }
@@ -369,7 +377,7 @@ function runGameDefense(){
       enemy.show();
       enemy.update();
 
-      const collided = enemy.detectCollisionHome(); // check once
+      const collided = enemy.detectCollision('Home'); 
 
       if (collided) {
         Game.shared.enemies.splice(i, 1); // remove if it hit home
@@ -409,7 +417,6 @@ function pauseGameDefence(){
 }
 
 function gameOver(){
-  
   let playerScore = Game.shared.score;
   let sortedHighscores = Game.shared.sortedHighscores;
   let lowestHighscore = Game.shared.lowestHighscore;
@@ -424,7 +431,7 @@ function gameOver(){
 function newHighScore(){
   let playerScore = Game.shared.score;
   background(bgBlueSky);
-
+  
   fill(0);
   textAlign(CENTER);
   
@@ -439,7 +446,7 @@ function newHighScore(){
   text("Press Esc to Exit to Menu", width/2, 450);
     
   if (!Game.shared.prompted) {
-   
+    winSound.play();
     nameInput = createInput();
     nameInput.position(width / 2 - 170, height / 2 + 60);
     nameInput.size(200,25);
@@ -470,7 +477,7 @@ function submitScore(){
 
     nameInput.remove();
     nameInput = createInput('---');
-    nameInput.position(width / 2 - 120, height / 2 + 50);
+    nameInput.position(width / 2 - 170, height / 2 + 60);
     nameInput.size(200);
     return;
     } 
@@ -493,43 +500,27 @@ function submitScore(){
 
 function regularScore(){
   let buttonWidth = 133;
-  let pos = (width/2) - (buttonWidth/2);
-  
-
   
   background(bgBlueSky);
   let playerScore = Game.shared.score;
 
   textSize(25);
-  
+  fill(0);
   textAlign(CENTER);
+
 
   if(Game.shared.soundPlayed === 1){
     loseSound.play();
     Game.shared.soundPlayed = 0;
   }
+  
+  
   text("You didn't make the leaderboard :(", width/2, 165);
   text("You scored: " + playerScore, width / 2, height/2);
-
+  text("Press Backspace to Try Again", width/2, 320);
+  
   text("Press Enter to Show Leaderboard", width/2, 410);
   text("Press Esc to Exit to Menu", width/2, 450);
-
-  if (!Game.shared.prompted) {
-  
-    tryagainButton = createButton("Try Again");
-    tryagainButton.class('my-button');
-    tryagainButton.position(pos, height / 2 + 40);
-    
-    tryagainButton.mousePressed(() => {
-      menuClickSound.play();
-      reset();
-      screen = 2;
-      tryagainButton.remove();
-    });
-        
-    Game.shared.prompted = true;
-    
-  }
 
 }
 
@@ -576,6 +567,7 @@ function showLeaderboard(){
 
 
 function runGameAttack(){
+  Game.shared.customFrameCount++;
   Game.shared.mode = 2;
   noStroke();
   fill(255);
@@ -591,13 +583,13 @@ function runGameAttack(){
 
 
   textSize(15);
-  text("score: " + Game.shared.scoreAttack, 125, 460);
- 
+  text("score: " + Game.shared.score, 125, 460);
+ //scoreAttack
   textFont('Helvetica'); 
   text("❤️", 65, 458);
   
   textFont(myFont);
-  text(Game.shared.characterHealth, 35, 460);
+  text(Game.shared.character.health, 35, 460);
 
   Game.shared.character.show();
   Game.shared.character.update();
@@ -606,14 +598,18 @@ function runGameAttack(){
     Game.shared.enemies.shift();
   }
   
-  // adds new enemies into array
-  if(frameCount<400){
-    text("press spacebar to shoot.", width/2, height/2);
-    text("kill 20 enemies to win", width/2, height/2+30);
-  } else  if (frameCount % 100 == 0) {
+  if(Game.shared.customFrameCount<400)
+  {
+    fill(0);
+    textSize(20);
+    text("press spacebar to shoot.", width/2+30, height/2+30);
+    text("kill 20 enemies to win", width/2+30, height/2+60);
+  } 
+  else  if (Game.shared.customFrameCount % 100 == 0) 
+  {
+    // adds new enemies into array
     Game.shared.enemies.push(new Enemy());
   }
-
   //for loop iterates over each enemy and runs show() and update() functions, then checks collisons
 
     for (//sets i to last index in array
@@ -625,7 +621,7 @@ function runGameAttack(){
       enemy.update();
       enemy.shoot();      
       
-      const collided = enemy.detectCollisionCharacter(); // check once
+      const collided = enemy.detectCollision('Character'); // check once
 
       if (collided) {
         Game.shared.enemies.splice(i, 1); // remove if it hit character
@@ -672,31 +668,48 @@ function pauseGameAttack(){
 }
 
 function gameOverAttack(){
-  let playerScore = Game.shared.scoreAttack;
-  
+  let playerScore = Game.shared.score;
+  //scoreAttack
+
+  if(Game.shared.soundPlayed === 1){
+    loseSound.play();
+    Game.shared.soundPlayed = 0;
+  }
+
   fill(255);
   textAlign(CENTER);
   textSize(25);
-  text("You scored: " + playerScore, width / 2,200);
-  text("LOSE", width / 2, 165);
+  
+  text("YOU LOSE </3", width / 2, 165);
+  text("You scored: " + playerScore, width / 2, 320);
+  text("Press Backspace to Try Again", width/2, 410);
+  text("Press Esc to Exit to Menu", width/2, 450);
 }
 
 function gameWinAttack(){
-  let playerScore = Game.shared.scoreAttack;
-  
+  if(Game.shared.soundPlayed === 1){
+    winSound.play();
+    Game.shared.soundPlayed = 0;
+  }
   fill(255);
   textAlign(CENTER);
   textSize(25);
-  text("You scored: " + playerScore, width2,200);
-  text("YOU WON", width / 2, 165);
+
+  text("YOU WON !!!", width / 2, 165);
+  text("You beat 20 enemies!", width2, 200);
+  text("Press Backspace to Try Again", width/2, 410);
+  text("Press Esc to Exit to Menu", width/2, 450);
+  
 }
 
 
 // ---
 
 
-function zenMode(){
+function trainingMode(){
   Game.shared.mode = 3;
+  Game.shared.customFrameCount++;
+  
   noStroke();
   fill(255);
 
@@ -712,7 +725,7 @@ function zenMode(){
 
 
   textSize(15);
-  text("score: " + Game.shared.scoreZen, 55, 460);
+  text("score: " + Game.shared.score, 55, 460);
 
 
   Game.shared.character.show();
@@ -722,17 +735,21 @@ function zenMode(){
     Game.shared.enemies.shift();
   }
 
-  if(frameCount<400){
+  fill(0);
+  textSize(20);
+  if(Game.shared.customFrameCount<400)
+  {
     text("press spacebar to shoot.", width/2, height/2);
     text("kill the enemies to earn points", width/2, height/2+30);
   } 
-  else if (frameCount<800)
+  else if(Game.shared.customFrameCount<800)
   {
     text("use W A S D keys to move", width/2, height/2);
     text("use space bar to shoot", width/2, height/2+30);
-  }
-  else if (frameCount % 100 == 0) 
+  } 
+  else if (Game.shared.customFrameCount % 100 == 0) 
   {
+    // adds new enemies into array
     Game.shared.enemies.push(new Enemy());
   }
 
@@ -763,12 +780,12 @@ function zenMode(){
   }
 }
 
-function pauseGameZen(){
+function pauseGametraining(){
   fill(255);
   textAlign(CENTER);
   textSize(30);
   strokeWeight(20);
-  text("ZEN MODE PAUSED", width/2, height/2); 
+  text("training MODE PAUSED", width/2, height/2); 
   textSize(15);
   text("Press Enter to Resume", width/2, (height/2)+30);
 }
@@ -823,7 +840,7 @@ function mousePressed() {
 
       if (screen === 9)
       {
-        //zen
+        //training
         menuClickSound.play();
         screen = 10;
       }
@@ -863,7 +880,6 @@ function keyPressed(){
   }
 
   if (screen === 4 && keyCode === 13) {
-    console.log("ENTER key pressed");
     if (submitButton) {
       // if there is a submit button , press it
       menuClickSound.play();
@@ -871,7 +887,6 @@ function keyPressed(){
     } else {
       // no submit button continue to leaderboard
       menuClickSound.play();
-      console.log("submitButton not defined yet");
       screen = 5;
     }
   }
@@ -881,8 +896,7 @@ function keyPressed(){
     if (submitButton) {
       //clear input and button if they exist
       nameInput.remove();
-      submitButton.remove();
-      tryagainButton.remove();     
+      submitButton.remove();   
     }
     menuClickSound.play();
     reset();
@@ -890,6 +904,21 @@ function keyPressed(){
     return;
   }
 
+  if (screen === 4  && keyCode === 8){
+    let playerScore = Game.shared.score;
+    let sortedHighscores = Game.shared.sortedHighscores;
+    let lowestHighscore = Game.shared.lowestHighscore;
+   
+    if(sortedHighscores.length<10 || playerScore>lowestHighscore){
+
+    } else {
+      menuClickSound.play();
+      reset();
+      screen = 2;
+    }
+    // press escape to return to menu
+      
+    }
 
   if (keyCode === 13 && (screen === 3)){
     ////continue the game when entered is pressed on attack pause
@@ -913,6 +942,11 @@ function keyPressed(){
     screen = 2;
   }
 
+  if (keyCode === 8 && (screen === 8 || screen === 11)){
+    //when backspace key is pressed on game over/win attack, game is restarted
+    reset();
+    screen = 6;
+  }
   if (keyCode === 27){
     menuClickSound.play();
     reset();
