@@ -696,7 +696,7 @@ function gameWinAttack(){
   textSize(25);
 
   text("YOU WON !!!", width / 2, 165);
-  text("You beat 20 enemies!", width2, 200);
+  text("You beat 20 enemies!", width/2, 200);
   text("Press Backspace to Try Again", width/2, 410);
   text("Press Esc to Exit to Menu", width/2, 450);
   
