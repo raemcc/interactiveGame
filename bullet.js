@@ -87,7 +87,7 @@ class Bullet
                         case 2:
                         //attack mode
                           Game.shared.score +=1;
-                          if(Game.shared.score>4)
+                          if(Game.shared.score>19)
                           {
                           screen=11;
                           }
