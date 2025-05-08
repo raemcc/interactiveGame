@@ -1,4 +1,7 @@
-let imgHome;
+let imgHome1;
+let imgHome2;
+let imgHome3;
+
 class Home
 {
   constructor()
@@ -13,15 +16,15 @@ class Home
     fill('white');
     if(Game.shared.home.health <30)
     {
-      image(imgHome, this.x, this.y, 66, 480);
+      image(imgHome3, this.x, this.y, 66, 480);
     } 
     else if (Game.shared.home.health <60)
     {
-      image(imgHome, this.x, this.y, 66, 480);
+      image(imgHome2, this.x, this.y, 66, 480);
     }
     else
     {
-      image(imgHome, this.x, this.y, 66, 480);
+      image(imgHome1, this.x, this.y, 66, 480);
     }
     
   }

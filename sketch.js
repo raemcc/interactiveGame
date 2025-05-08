@@ -52,7 +52,9 @@ function preload(){
   pic3 = loadImage('media/enemy3.png');
   vis1 = loadImage('media/enemy1.png');
 
-  imgHome = loadImage('media/home.png');
+  imgHome1 = loadImage('media/home1.png');
+  imgHome2 = loadImage('media/home2.png');
+  imgHome3 = loadImage('media/home3.png');
 
   myFont = loadFont('media/minecraft.ttf');
 
